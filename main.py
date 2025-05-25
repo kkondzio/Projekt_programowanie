@@ -12,8 +12,9 @@ for nazwa_pliku in os.listdir(folder_ze_zdjeciami):
         sciezka = os.path.join(folder_ze_zdjeciami, nazwa_pliku)
         lista_zdjec.append(sciezka)
 
-""" Funkcja wyświetlająca losowe zdjęcie z folderu """
+
 def pokaz_losowe_zdjecie():
+    """ Funkcja wyświetlająca losowe zdjęcie z folderu """
     if lista_zdjec:
         losowe_zdjecie = random.choice(lista_zdjec)
         img = Image.open(losowe_zdjecie)
