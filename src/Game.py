@@ -239,7 +239,3 @@ class Game:
         """Zmienia stan gry na nowy."""
         self.state = new_state
         print('Zmieniono stan')
-
-if __name__ == "__main__":
-    game = Game()
-    game.run()
