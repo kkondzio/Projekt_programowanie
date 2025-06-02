@@ -4,6 +4,7 @@ import sys
 import pygame
 from game_state import GameState
 import random
+import os
 
 # Inicjalizacja Pygame
 pygame.init()
@@ -58,6 +59,17 @@ class Game:
             (166, 123, 81): "wielkopolskie",
             (87, 133, 195): "zachodniopomorskie"
         }
+        self.load_images()
+
+    def load_images(self):
+        """Ładuje zdjęcia z folderu "zdjecia" """
+        folder = os.path.join(os.path.dirname(__file__), "zdjecia")
+        if not os.path.exists(folder):
+            return 1
+
+        for zdjecie in os.listdir(folder):
+            wojewodztwo = zdjecie.split("_")[0].lower()
+            self.images[zdjecie] = wojewodztwo
 
     def draw_header(self)-> None:
         """Rysuje nagłówek z informacjami o rundzie i wyniku."""
