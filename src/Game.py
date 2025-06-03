@@ -239,3 +239,6 @@ class Game:
         """Zmienia stan gry na nowy."""
         self.state = new_state
         print('Zmieniono stan')
+
+
+class Map
