@@ -3,8 +3,8 @@
 import sys
 import pygame
 from game_state import GameState
-import random
 import os
+from map import PolandMapWidget
 
 # Inicjalizacja Pygame
 pygame.init()
@@ -195,25 +195,21 @@ class Game:
 
     def handle_gamepage(self)-> None:
         """Obsługuje stronę gry (rozgrywkę)."""
-        self.score = 0
-
-        for round_num in range(self.total_rounds):
-            self.current_round = round_num
-            self.screen.fill((240, 250, 240))
-            self.draw_header()
-            game_area = pygame.Rect(0, HEADER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - HEADER_HEIGHT)
-            pygame.draw.rect(self.screen, WHITE, game_area)
-
-            #TODO: logika gry narazie jest tak
-            game_text = FONT.render("tu sie gra", True, BLACK)
-            self.screen.blit(game_text, (SCREEN_WIDTH//2 - game_text.get_width()//2,
-                                       HEADER_HEIGHT + (SCREEN_HEIGHT - HEADER_HEIGHT)//2 - game_text.get_height()//2))
-            pygame.display.flip()
-            pygame.time.wait(2000)
-
-            # Tymczasowy losowy wynik.
-            self.score += random.randint(0, 1)
-        self.change_state(GameState.RESULTPAGE)
+        map_widget = PolandMapWidget(200, 200, 400, 400, 'map_assets/wojewodztwa.shp') # TODO: Prawdziwa logika gry
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                else:
+                    woj = map_widget.handle_event(event)
+                    if woj == 'mazowieckie':
+                        print('WOW GRAPE!!!')
+                        self.change_state(GameState.RESULTPAGE)
+                        return
+            self.screen.fill((240, 240, 240))
+            map_widget.update()
+            map_widget.draw(self.screen)
+            pygame.display.flip() 
 
     def handle_resultpage(self)-> None:
         """Wyświetla wynik końcowy i wraca do strony startowej."""
@@ -239,6 +235,3 @@ class Game:
         """Zmienia stan gry na nowy."""
         self.state = new_state
         print('Zmieniono stan')
-
-
-class Map
