@@ -211,6 +211,17 @@ class Game:
             map_widget.draw(self.screen)
             pygame.display.flip() 
 
+
+    def sprawdz_odpowiedz(self, zdjecie: str, klikniete_wojewodztwo: str) -> bool:
+        """
+        Sprawdza, czy kliknięte województwo odpowiada zdjęciu.
+        """
+        poprawne_wojewodztwo = self.images[zdjecie]
+        if klikniete_wojewodztwo.lower() == poprawne_wojewodztwo:
+            self.score += 1
+            return True
+        return False
+
     def handle_resultpage(self)-> None:
         """Wyświetla wynik końcowy i wraca do strony startowej."""
         self.screen.fill((240, 250, 240))
