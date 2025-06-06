@@ -5,6 +5,7 @@ import pygame
 from game_state import GameState
 import os
 from map import PolandMapWidget
+import random
 
 # Inicjalizacja Pygame
 pygame.init()
@@ -61,6 +62,12 @@ class Game:
         }
         self.load_images()
 
+        """Przygotowanie listy plików i miejsca na aktualne zdjęcie"""
+        self.image_folder = os.path.join(os.path.dirname(__file__), "zdjecia")
+        self.image_keys = list(self.images.keys())  
+        self.current_image = None                      
+        self.current_image_surface = None              
+
     def load_images(self):
         """Ładuje zdjęcia z folderu "zdjecia" """
         folder = os.path.join(os.path.dirname(__file__), "zdjecia")
@@ -70,6 +77,22 @@ class Game:
         for zdjecie in os.listdir(folder):
             wojewodztwo = zdjecie.split("_")[0].lower()
             self.images[zdjecie] = wojewodztwo
+
+    def pick_next_image(self) -> None:
+        """Losuje nowe zdjęcie spośród dostępnych zdjęć"""        
+        if not self.image_keys:
+            self.current_image = None
+            self.current_image_surface = None
+            return    
+        self.current_image = random.choice(self.image_keys)
+        self.image_keys.remove(self.current_image)
+        full_path = os.path.join(self.image_folder, self.current_image)
+        surf = pygame.image.load(full_path).convert_alpha()    
+        max_w, max_h = 300, 300
+        w, h = surf.get_size()
+        scale = min(max_w / w, max_h / h)
+        new_size = (int(w * scale), int(h * scale))
+        self.current_image_surface = pygame.transform.smoothscale(surf, new_size)
 
     def draw_header(self)-> None:
         """Rysuje nagłówek z informacjami o rundzie i wyniku."""
@@ -193,24 +216,36 @@ class Game:
         pygame.time.wait(500)
         self.change_state(GameState.GAMEPAGE)
 
-    def handle_gamepage(self)-> None:
-        """Obsługuje stronę gry (rozgrywkę)."""
-        map_widget = PolandMapWidget(200, 200, 400, 400, 'map_assets/wojewodztwa.shp') # TODO: Prawdziwa logika gry
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                else:
-                    woj = map_widget.handle_event(event)
-                    if woj == 'mazowieckie':
-                        print('WOW GRAPE!!!')
-                        self.change_state(GameState.RESULTPAGE)
+    def handle_gamepage(self) -> None:
+        """Obsługuje stronę gry (rozgrywkę). """
+        self.current_round = 0
+        self.score = 0
+        map_widget = PolandMapWidget(200, 200, 400, 400, 'map_assets/wojewodztwa.shp')  # TODO: Prawdziwa logika gry
+        while self.running and self.current_round < self.total_rounds:
+            self.pick_next_image()
+            round_running = True
+            while round_running:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
+                        self.change_state(GameState.END)
                         return
-            self.screen.fill((240, 240, 240))
-            map_widget.update()
-            map_widget.draw(self.screen)
-            pygame.display.flip() 
-
+                    else:
+                        klikniete_wojewodztwo = map_widget.handle_event(event)
+                        if klikniete_wojewodztwo:
+                            self.sprawdz_odpowiedz(self.current_image, klikniete_wojewodztwo)
+                            round_running = False
+                self.screen.fill((240, 240, 240))
+                if self.current_image_surface:
+                    x_pos = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
+                    y_pos = HEADER_HEIGHT + 50
+                    self.screen.blit(self.current_image_surface, (x_pos, y_pos))
+                map_widget.update()
+                map_widget.draw(self.screen)
+                pygame.display.flip()
+            self.current_round += 1
+        self.change_state(GameState.RESULTPAGE)
+ 
 
     def sprawdz_odpowiedz(self, zdjecie: str, klikniete_wojewodztwo: str) -> bool:
         """
