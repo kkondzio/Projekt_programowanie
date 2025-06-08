@@ -34,3 +34,10 @@ Mapka z podziałem na województwa – wyświetla mapę Polski z podziałem na w
 **Instrukcja użytkowania**  
 
 Po uruchomieniu main.py na ekranie pojawi się okno z grą. Aby rozpocząć grę użytkownik musi nacisnąć pole „Start Gry”. Następnie na pulpicie wyświetlona zostaje mapa z podziałem na województwa i zdjęcie miasta z Polski.  Zadaniem gracza jest odpowiednie dopasowanie wyświetlonego zdjęcia do konkretnego województwa (za każdą poprawną odpowiedź użytkownik otrzymuje jeden punkt).  Gra kończy się po trzech rundach, po czym na ekranie zostaje wyświetlony wynik poprawnie zaznaczonych odpowiedzi (np.2/3). Po chwili użytkownik zostaje przeniesiony do ekranu początkowego, gdzie ponownie może rozpocząć grę lub wyjść z niej przyciskiem ”zakończ”. 
+
+
+
+
+
+
+![Diagram UML](Game.png)
