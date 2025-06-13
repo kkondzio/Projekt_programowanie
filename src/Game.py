@@ -121,6 +121,8 @@ class Game:
                 self.handle_homepage()
             elif self.state == GameState.STARTPAGE:
                 self.handle_startpage()
+            elif self.state == GameState.INCSTRUCTIONPAGE:
+                self.handle_instructionpage()
             elif self.state == GameState.GAMEPAGE:
                 self.handle_gamepage()
             elif self.state == GameState.RESULTPAGE:
@@ -215,6 +217,9 @@ class Game:
 
         pygame.time.wait(500)
         self.change_state(GameState.GAMEPAGE)
+
+    def handle_instructionpage():
+        pass
 
     def handle_gamepage(self) -> None:
         """Obsługuje stronę gry (rozgrywkę). """
