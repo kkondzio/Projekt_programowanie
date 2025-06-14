@@ -225,7 +225,46 @@ class Game:
         """Obsługuje stronę gry (rozgrywkę). """
         self.current_round = 0
         self.score = 0
-        map_widget = PolandMapWidget(200, 200, 400, 400, 'map_assets/wojewodztwa.shp')  # TODO: Prawdziwa logika gry
+
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        shapefile_path = os.path.join(project_root, 'map_assets', 'wojewodztwa.shp')
+        
+        # Debugowanie - wypisz ścieżki
+        print(f"Bieżący folder: {os.path.abspath('.')}")
+        print(f"Lokalizacja pliku __file__: {os.path.abspath(__file__)}")
+        print(f"Ścieżka do mapy: {shapefile_path}")
+        print(f"Czy plik istnieje: {os.path.exists(shapefile_path)}")
+
+        if not os.path.exists(shapefile_path):
+            # Sprawdzanie, czy plik jest w tym samym folderze co skrypt?
+            shapefile_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                                        'map_assets', 'wojewodztwa.shp')
+            print(f"Próba alternatywnej ścieżki: {shapefile_path}")
+            print(f"Czy plik istnieje: {os.path.exists(shapefile_path)}")
+
+        if not os.path.exists(shapefile_path):
+            error_msg = "Nie znaleziono pliku z mapą województw!"
+            print(error_msg)
+            error_text = FONT.render(error_msg, True, (255, 0, 0))
+            self.screen.blit(error_text, (50, 50))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            self.change_state(GameState.HOMEPAGE)
+            return
+
+        try:
+            map_widget = PolandMapWidget(200, 200, 400, 400, shapefile_path)
+        except Exception as e:
+            error_msg = f"Błąd ładowania mapy: {str(e)}"
+            print(error_msg)
+            error_text = FONT.render("Błąd ładowania mapy!", True, (255, 0, 0))
+            self.screen.blit(error_text, (50, 50))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            self.change_state(GameState.HOMEPAGE)
+            return
+        
+        
         while self.running and self.current_round < self.total_rounds:
             self.pick_next_image()
             round_running = True

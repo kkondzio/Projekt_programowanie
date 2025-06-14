@@ -8,7 +8,7 @@ class PolandMapWidget:
         self.surface = pygame.Surface((width, height), pygame.SRCALPHA)
         self.visible = True
         self.active = True
-        
+
         # Wczytaj dane mapy
         self.load_shapefile(shapefile_path)
         self.selected_voivodeship = None
