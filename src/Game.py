@@ -222,73 +222,69 @@ class Game:
         pass
 
     def handle_gamepage(self) -> None:
-        """Obsługuje stronę gry (rozgrywkę). """
+        """Obsługuje stronę gry (rozgrywkę)."""
         self.current_round = 0
         self.score = 0
 
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        shapefile_path = os.path.join(project_root, 'map_assets', 'wojewodztwa.shp')
-        
-        # Debugowanie - wypisz ścieżki
-        print(f"Bieżący folder: {os.path.abspath('.')}")
-        print(f"Lokalizacja pliku __file__: {os.path.abspath(__file__)}")
-        print(f"Ścieżka do mapy: {shapefile_path}")
-        print(f"Czy plik istnieje: {os.path.exists(shapefile_path)}")
-
-        if not os.path.exists(shapefile_path):
-            # Sprawdzanie, czy plik jest w tym samym folderze co skrypt?
-            shapefile_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                        'map_assets', 'wojewodztwa.shp')
-            print(f"Próba alternatywnej ścieżki: {shapefile_path}")
-            print(f"Czy plik istnieje: {os.path.exists(shapefile_path)}")
-
-        if not os.path.exists(shapefile_path):
-            error_msg = "Nie znaleziono pliku z mapą województw!"
-            print(error_msg)
-            error_text = FONT.render(error_msg, True, (255, 0, 0))
-            self.screen.blit(error_text, (50, 50))
-            pygame.display.flip()
-            pygame.time.wait(3000)
-            self.change_state(GameState.HOMEPAGE)
+        map_widget = self.load_map_widget()
+        if not map_widget:
             return
 
+        while self.running and self.current_round < self.total_rounds:
+            self.pick_next_image()
+            self.run_single_round(map_widget)
+            self.current_round += 1
+
+        self.change_state(GameState.RESULTPAGE)
+
+    def load_map_widget(self):
+        """Wczytuje widget mapy, zwraca obiekt lub None przy błędzie."""
         try:
-            map_widget = PolandMapWidget(200, 200, 400, 400, shapefile_path)
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            shapefile_path = os.path.join(project_root, 'map_assets', 'wojewodztwa.shp')
+            if not os.path.exists(shapefile_path):
+                shapefile_path = os.path.join(os.path.dirname(__file__), 'map_assets', 'wojewodztwa.shp')
+            if not os.path.exists(shapefile_path):
+                raise FileNotFoundError("Nie znaleziono pliku z mapą województw!")
+
+            return PolandMapWidget(200, 200, 400, 400, shapefile_path)
+
         except Exception as e:
-            error_msg = f"Błąd ładowania mapy: {str(e)}"
-            print(error_msg)
+            print(f"Błąd ładowania mapy: {e}")
+            self.screen.fill((240, 240, 240))
             error_text = FONT.render("Błąd ładowania mapy!", True, (255, 0, 0))
             self.screen.blit(error_text, (50, 50))
             pygame.display.flip()
             pygame.time.wait(3000)
             self.change_state(GameState.HOMEPAGE)
-            return
-        
-        
-        while self.running and self.current_round < self.total_rounds:
-            self.pick_next_image()
-            round_running = True
-            while round_running:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        self.running = False
-                        self.change_state(GameState.END)
-                        return
-                    else:
-                        klikniete_wojewodztwo = map_widget.handle_event(event)
-                        if klikniete_wojewodztwo:
-                            self.sprawdz_odpowiedz(self.current_image, klikniete_wojewodztwo)
-                            round_running = False
-                self.screen.fill((240, 240, 240))
-                if self.current_image_surface:
-                    x_pos = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
-                    y_pos = HEADER_HEIGHT + 50
-                    self.screen.blit(self.current_image_surface, (x_pos, y_pos))
-                map_widget.update()
-                map_widget.draw(self.screen)
-                pygame.display.flip()
-            self.current_round += 1
-        self.change_state(GameState.RESULTPAGE)
+            return None
+
+    def run_single_round(self, map_widget) -> None:
+        """Prowadzi jedną rundę gry."""
+        round_running = True
+        while round_running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    self.change_state(GameState.END)
+                    return
+                klikniete = map_widget.handle_event(event)
+                if klikniete:
+                    self.sprawdz_odpowiedz(self.current_image, klikniete)
+                    round_running = False
+
+            self.screen.fill((240, 240, 240))
+            self.draw_header()
+
+            if self.current_image_surface:
+                x = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
+                y = HEADER_HEIGHT + 50
+                self.screen.blit(self.current_image_surface, (x, y))
+
+            map_widget.update()
+            map_widget.draw(self.screen)
+            pygame.display.flip()
+
  
 
     def sprawdz_odpowiedz(self, zdjecie: str, klikniete_wojewodztwo: str) -> bool:
