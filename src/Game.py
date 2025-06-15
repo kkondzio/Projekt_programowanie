@@ -7,10 +7,10 @@ import os
 from map import PolandMapWidget
 import random
 
-# Inicjalizacja Pygame
+""" Inicjalizacja Pygame"""
 pygame.init()
 
-# Stałe
+""" Stałe"""
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -18,7 +18,7 @@ GREEN = (0, 200, 0)
 DARK_GREEN = (0, 160, 0)
 HEADER_HEIGHT = 60
 
-# Czcionki
+""" Czcionki"""
 FONT = pygame.font.SysFont('Arial', 32)
 SMALL_FONT = pygame.font.SysFont('Arial', 24)
 TITLE_FONT = pygame.font.SysFont('Arial', 64, bold=True)
@@ -30,19 +30,19 @@ class Game:
 
     def __init__(self)-> None:
         """Inicjalizuje atrybuty gry i stan początkowy."""
-        self.state = GameState.HOMEPAGE
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.state: GameState = GameState.HOMEPAGE
+        self.screen: pygame.Surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Znajdź Województwo")
-        self.player_name = ""
-        self.input_text = ""
-        self.current_round = 0
-        self.total_rounds = 3
-        self.images = dict()
-        self.running = True
-        self.score = 0
+        self.player_name: str = ""
+        self.input_text: str = ""
+        self.current_round: int = 0
+        self.total_rounds: int = 3
+        self.images: dict[str, str] = {}
+        self.runnin: bool = True
+        self.score: int = 0
         self.button_glow = 0
-        self.glow_direction = 1
-        self.kolory_wojewodztw = {
+        self.glow_direction: int = 1
+        self.kolory_wojewodztw: dict[tuple[int, int, int], str] = {
             (103, 186, 144): "dolnośląskie",
             (140, 96, 59): "kujawsko-pomorskie",
             (235, 88, 72): "lubelskie",
@@ -63,12 +63,12 @@ class Game:
         self.load_images()
 
         """Przygotowanie listy plików i miejsca na aktualne zdjęcie"""
-        self.image_folder = os.path.join(os.path.dirname(__file__), "zdjecia")
-        self.image_keys = list(self.images.keys())  
-        self.current_image = None                      
-        self.current_image_surface = None              
+        self.image_folder: str = os.path.join(os.path.dirname(__file__), "zdjecia")
+        self.image_keys: list[str] = list(self.images.keys())  
+        self.current_image: str | None = None                      
+        self.current_image_surface: pygame.Surface | None = None              
 
-    def load_images(self):
+    def load_images(self) -> None:
         """Ładuje zdjęcia z folderu "zdjecia" """
         folder = os.path.join(os.path.dirname(__file__), "zdjecia")
         if not os.path.exists(folder):
@@ -96,21 +96,21 @@ class Game:
 
     def draw_header(self)-> None:
         """Rysuje nagłówek z informacjami o rundzie i wyniku."""
-        # Tło nagłówka
+        """ Tło nagłówka"""
         pygame.draw.rect(self.screen, (230, 245, 230), (0, 0, SCREEN_WIDTH, HEADER_HEIGHT))
 
-        # Linia oddzielająca
+        """Linia oddzielająca"""
         pygame.draw.line(self.screen, (180, 220, 180), (0, HEADER_HEIGHT), (SCREEN_WIDTH, HEADER_HEIGHT), 2)
 
-        # Licznik rund (lewy górny róg)
+        """Licznik rund (lewy górny róg)"""
         round_text = HEADER_FONT.render(f"Runda: {self.current_round + 1}/{self.total_rounds}", True, (0, 100, 0))
         self.screen.blit(round_text, (20, 15))
 
-        # Wynik (prawy górny róg)
+        """Wynik (prawy górny róg)"""
         score_text = HEADER_FONT.render(f"Wynik: {self.score}", True, (0, 100, 0))
         self.screen.blit(score_text, (SCREEN_WIDTH - score_text.get_width() - 20, 15))
 
-        # Pionowa linia oddzielająca
+        """Pionowa linia oddzielająca"""
         pygame.draw.line(self.screen, (180, 220, 180), (SCREEN_WIDTH // 2, 0), (SCREEN_WIDTH // 2, HEADER_HEIGHT), 1)
 
     def run(self)-> None:
@@ -218,7 +218,7 @@ class Game:
         pygame.time.wait(500)
         self.change_state(GameState.GAMEPAGE)
 
-    def handle_instructionpage():
+    def handle_instructionpage(self) -> None:
         pass
 
     def handle_gamepage(self) -> None:
@@ -268,7 +268,8 @@ class Game:
         result_text = FONT.render(f"Wynik końcowy: {self.score}/{self.total_rounds}", True, (50, 100, 50))
         self.screen.blit(result_text, (SCREEN_WIDTH//2 - result_text.get_width()//2, SCREEN_HEIGHT//2 - 50))
 
-        # Komentarze do wyniku
+        """ Komentarze do wyniku"""
+
         if self.score == self.total_rounds:
             comment = "Perfekcyjnie!"
         elif self.score >= self.total_rounds // 2:
@@ -281,8 +282,8 @@ class Game:
         pygame.display.flip()
         pygame.time.wait(3000)
         self.change_state(GameState.HOMEPAGE)
-
-    def change_state(self, new_state: GameState):
+        
+    def change_state(self, new_state: GameState) -> None:
         """Zmienia stan gry na nowy."""
         self.state = new_state
         print('Zmieniono stan')
