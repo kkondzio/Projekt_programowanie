@@ -207,6 +207,35 @@ class Game:
 
             pygame.display.flip()
 
+    def handle_difficulty_select(self) -> None:
+        while self.state == GameState.DIFFICULTY_SELECT:
+            self.screen.fill((240,250,240))
+            mouse_pos = pygame.mouse.get_pos()
+
+            title = FONT.render("Wybierz poziom trudności", True, BLACK)
+            self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 100))
+
+            easy_btn = pygame.Rect(490, 250, 300, 70)
+            hard_btn = pygame.Rect(490, 350, 300, 70)
+            self.draw_button("Łatwy", easy_btn, GREEN, DARK_GREEN, mouse_pos)
+            self.draw_button("Trudny", hard_btn, (200, 0, 0), (160, 0, 0), mouse_pos)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.change_state(GameState.END)
+                    return
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if easy_btn.collidepoint(event.pos):
+                        self.hard_mode = False
+                        self.change_state(GameState.STARTPAGE)
+                        return
+                    elif hard_btn.collidepoint(event.pos):
+                        self.hard_mode = True
+                        self.change_state(GameState.HARDMODE_INSTRUCTION)
+                        return
+                    
+            pygame.display.flip()
+
     def handle_startpage(self)-> None:
         """Obsługuje stronę rozpoczęcia rozgrywki z wprowadzeniem imienia i paskiem ładowania."""
         
@@ -335,6 +364,9 @@ class Game:
 
         self.change_state(GameState.RESULTPAGE)
 
+    def handle_gamepage_hard_mode(self) -> None:
+        pass
+
     def load_map_widget(self) -> None:
         """Wczytuje widget mapy, zwraca obiekt lub None przy błędzie."""
         try:
@@ -383,7 +415,8 @@ class Game:
             map_widget.draw(self.screen)
             pygame.display.flip()
 
- 
+    def run_single_round_hard_mode(self, map_widget) -> None:
+        pass
 
     def sprawdz_odpowiedz(self, zdjecie: str, klikniete_wojewodztwo: str) -> bool:
         """
