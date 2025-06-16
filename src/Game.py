@@ -38,7 +38,7 @@ class Game:
         self.current_round: int = 0
         self.total_rounds: int = 3
         self.images: dict[str, str] = {}
-        self.runnin: bool = True
+        self.running: bool = True
         self.score: int = 0
         self.button_glow = 0
         self.glow_direction: int = 1
@@ -61,6 +61,8 @@ class Game:
             (87, 133, 195): "zachodniopomorskie"
         }
         self.load_images()
+        self.hard_mode: bool = False
+        self.start_time = None
 
         """Przygotowanie listy plików i miejsca na aktualne zdjęcie"""
         self.image_folder: str = os.path.join(os.path.dirname(__file__), "zdjecia")
@@ -121,12 +123,14 @@ class Game:
                 self.handle_homepage()
             elif self.state == GameState.STARTPAGE:
                 self.handle_startpage()
-            elif self.state == GameState.INCSTRUCTIONPAGE:
+            elif self.state == GameState.HARDMODE_INSTRUCTION:
                 self.handle_instructionpage()
             elif self.state == GameState.GAMEPAGE:
                 self.handle_gamepage()
             elif self.state == GameState.RESULTPAGE:
                 self.handle_resultpage()
+            elif self.state == GameState.DIFFICULTY_SELECT:
+                self.handle_difficulty_select()
             clock.tick(60)
         pygame.quit()
         sys.exit()
@@ -193,13 +197,43 @@ class Game:
                     if start_btn.collidepoint(event.pos):
                         pygame.display.flip()
                         pygame.time.delay(300)
-                        self.change_state(GameState.STARTPAGE)
+                        self.change_state(GameState.DIFFICULTY_SELECT)
                         return
                     elif exit_btn.collidepoint(event.pos):
                         self.change_state(GameState.END)
                         return
 
             pygame.display.flip()
+
+    def handle_difficulty_select(self) -> None:
+        while self.state == GameState.DIFFICULTY_SELECT:
+            self.screen.fill((240,250,240))
+            mouse_pos = pygame.mouse.get_pos()
+
+            title = FONT.render("Wybierz poziom trudności", True, BLACK)
+            self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 100))
+
+            easy_btn = pygame.Rect(490, 250, 300, 70)
+            hard_btn = pygame.Rect(490, 350, 300, 70)
+            self.draw_button("Łatwy", easy_btn, GREEN, DARK_GREEN, mouse_pos)
+            self.draw_button("Trudny", hard_btn, (200, 0, 0), (160, 0, 0), mouse_pos)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.change_state(GameState.END)
+                    return
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if easy_btn.collidepoint(event.pos):
+                        self.hard_mode = False
+                        self.change_state(GameState.STARTPAGE)
+                        return
+                    elif hard_btn.collidepoint(event.pos):
+                        self.hard_mode = True
+                        self.change_state(GameState.HARDMODE_INSTRUCTION)
+                        return
+                    
+            pygame.display.flip()
+
 
     def handle_startpage(self)-> None:
         """Obsługuje stronę rozpoczęcia rozgrywki."""
@@ -219,12 +253,42 @@ class Game:
         self.change_state(GameState.GAMEPAGE)
 
     def handle_instructionpage(self) -> None:
-        pass
+        while self.state == GameState.HARDMODE_INSTRUCTION:
+            self.screen.fill((240, 250, 240))
+            mouse_pos = pygame.mouse.get_pos()
+
+            lines = [ 
+                "Tryb Trudny:",
+                "- Masz 10 sekund na każdą rundę.",
+                "- Kliknij na poprawne województwo jak najszybciej!",
+                "",
+                "Powodzenia!"
+            ]
+
+            for i, line in enumerate(lines):
+                txt = SMALL_FONT.render(line, True, BLACK)
+                self.screen.blit(txt, (SCREEN_WIDTH//2 - txt.get_width()//2, 100 + i*40))
+
+            play_btn = pygame.Rect(490, 400, 300, 70)
+            self.draw_button("Graj", play_btn, GREEN, DARK_GREEN, mouse_pos)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.change_state(GameState.END)
+                    return
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if play_btn.collidepoint(event.pos):
+                        self.change_state(GameState.GAMEPAGE)
+                        return
+                    
+        pygame.display.flip()
+
 
     def handle_gamepage(self) -> None:
         """Obsługuje stronę gry (rozgrywkę). """
         self.current_round = 0
         self.score = 0
+        start_time = pygame.time.get_ticks()
         map_widget = PolandMapWidget(200, 200, 400, 400, 'map_assets/wojewodztwa.shp')  # TODO: Prawdziwa logika gry
         while self.running and self.current_round < self.total_rounds:
             self.pick_next_image()
@@ -240,6 +304,11 @@ class Game:
                         if klikniete_wojewodztwo:
                             self.sprawdz_odpowiedz(self.current_image, klikniete_wojewodztwo)
                             round_running = False
+                    if self.hard_mode:
+                        elapsed_time = (pygame.time.get_ticks() - start_time) / 1000
+                        if elapsed_time >= 10:
+                            round_running = False  # kończymy rundę bez punktu
+                self.draw_header()
                 self.screen.fill((240, 240, 240))
                 if self.current_image_surface:
                     x_pos = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
@@ -247,6 +316,11 @@ class Game:
                     self.screen.blit(self.current_image_surface, (x_pos, y_pos))
                 map_widget.update()
                 map_widget.draw(self.screen)
+                if self.hard_mode:
+                    remaining = max(0, 10 - int((pygame.time.get_ticks() - start_time) / 1000))
+                    timer_text = FONT.render(f"Czas: {remaining}", True, (200, 0, 0))
+                    self.screen.blit(timer_text, (50, HEADER_HEIGHT + 20))
+                
                 pygame.display.flip()
             self.current_round += 1
         self.change_state(GameState.RESULTPAGE)
