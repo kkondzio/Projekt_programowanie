@@ -121,7 +121,7 @@ class Game:
                 self.handle_homepage()
             elif self.state == GameState.STARTPAGE:
                 self.handle_startpage()
-            elif self.state == GameState.INCSTRUCTIONPAGE:
+            elif self.state == GameState.INSTRUCTIONPAGE:
                 self.handle_instructionpage()
             elif self.state == GameState.GAMEPAGE:
                 self.handle_gamepage()
@@ -182,8 +182,10 @@ class Game:
             self.screen.blit(title_shadow, (SCREEN_WIDTH//2 - title_shadow.get_width()//2 + 3, title_y + 3))
             self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, title_y))
             start_btn = pygame.Rect(490, 250, 300, 70)
-            exit_btn = pygame.Rect(490, 350, 300, 70)
+            rules_btn = pygame.Rect(490, 350, 300, 70)
+            exit_btn = pygame.Rect(490, 450, 300, 70)
             self.draw_button("Start Gry", start_btn, GREEN, DARK_GREEN, mouse_pos, glow=True)
+            self.draw_button("Zasady Gry", rules_btn, GREEN, DARK_GREEN, mouse_pos)
             self.draw_button("Zakończ", exit_btn, GREEN, DARK_GREEN, mouse_pos)
 
             for event in pygame.event.get(): #TODO: zdarzeniaaa
@@ -195,6 +197,10 @@ class Game:
                         pygame.time.delay(300)
                         self.change_state(GameState.STARTPAGE)
                         return
+                    elif rules_btn.collidepoint(event.pos):
+                        pygame.time.delay(300)
+                        self.change_state(GameState.INSTRUCTIONPAGE)
+                        return
                     elif exit_btn.collidepoint(event.pos):
                         self.change_state(GameState.END)
                         return
@@ -202,24 +208,116 @@ class Game:
             pygame.display.flip()
 
     def handle_startpage(self)-> None:
-        """Obsługuje stronę rozpoczęcia rozgrywki."""
-        self.screen.fill((240, 250, 240))
+        """Obsługuje stronę rozpoczęcia rozgrywki z wprowadzeniem imienia i paskiem ładowania."""
+        
+        """inicjalizacja pola tekstowego"""
+        input_active = False
+        input_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 50)
+        color_active = pygame.Color('lightskyblue3')
+        color_inactive = pygame.Color('gray')
+        color = color_inactive
+        self.input_text = ''
 
-        text = FONT.render("Przygotuj się do gry!", True, BLACK)
-        self.screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
-        pygame.draw.rect(self.screen, (200, 200, 200), (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 300, 20))
-        pygame.display.flip()
-
-        for i in range(1, 101):
-            pygame.draw.rect(self.screen, GREEN, (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 3 * i, 20))
+        """Pętla wprowadzania imienia"""
+        name_entered = False
+        while self.state == GameState.STARTPAGE and not name_entered:
+            mouse_pos = pygame.mouse.get_pos()
+            self.screen.fill((240, 250, 240))
+            
+            title = FONT.render("Wprowadź swoje imię:", True, (50, 100, 50))
+            self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, SCREEN_HEIGHT//3 - 50))
+            
+            pygame.draw.rect(self.screen, color, input_rect, 2, border_radius=10)
+            text_surface = FONT.render(self.input_text, True, BLACK)
+            self.screen.blit(text_surface, (input_rect.x + 10, input_rect.y + 10))
+            
+            continue_btn = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 20, 200, 60)
+            self.draw_button("Dalej", continue_btn, GREEN, DARK_GREEN, mouse_pos, glow=bool(self.input_text))
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.change_state(GameState.END)
+                    return
+                    
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if input_rect.collidepoint(event.pos):
+                        input_active = True
+                        color = color_active
+                    else:
+                        input_active = False
+                        color = color_inactive
+                        
+                    if continue_btn.collidepoint(event.pos) and self.input_text:
+                        self.player_name = self.input_text
+                        name_entered = True
+                        
+                if event.type == pygame.KEYDOWN and input_active:
+                    if event.key == pygame.K_RETURN and self.input_text:
+                        self.player_name = self.input_text
+                        name_entered = True
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.input_text = self.input_text[:-1]
+                    else:
+                        if len(self.input_text) < 20:
+                            self.input_text += event.unicode
+            
             pygame.display.flip()
-            pygame.time.wait(20)
+        
+        """Faza ładowania po wprowadzeniu imienia"""
+        if name_entered:
+            self.screen.fill((240, 250, 240))
+            
+            text = FONT.render(f"Witaj, {self.player_name}! Przygotuj się do gry!", True, BLACK)
+            self.screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
+            pygame.draw.rect(self.screen, (200, 200, 200), (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 300, 20))
+            pygame.display.flip()
 
-        pygame.time.wait(500)
-        self.change_state(GameState.GAMEPAGE)
+            for i in range(1, 101):
+                pygame.draw.rect(self.screen, GREEN, (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 3 * i, 20))
+                pygame.display.flip()
+                pygame.time.wait(20)
+
+            pygame.time.wait(500)
+            self.change_state(GameState.GAMEPAGE)
 
     def handle_instructionpage(self) -> None:
-        pass
+        """Wyświetla ekran z zasadami gry."""
+        while self.state == GameState.INSTRUCTIONPAGE:
+            self.screen.fill((240, 250, 240))
+        
+            """Naapis z efektem cienia"""
+            title = TITLE_FONT.render("Zasady Gry", True, (50, 100, 50))
+            title_shadow = TITLE_FONT.render("Zasady Gry", True, (100, 150, 100))
+            self.screen.blit(title_shadow, (SCREEN_WIDTH//2 - title_shadow.get_width()//2 + 3, 100 + 3))
+            self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 100))
+        
+            """Lista zasad"""
+            rules_text = [
+            "1. Kliknij na mapie województwo, które widzisz na zdjęciu.",
+            "2. Masz 3 rundy, aby zdobyć jak najwięcej punktów.",
+            "3. Każda poprawna odpowiedź to jeden punkt."
+        ]
+            
+            """Zasady punkt po punkcie"""
+            for i, line in enumerate(rules_text):
+                text_surface = FONT.render(line, True, BLACK)
+                self.screen.blit(text_surface, (SCREEN_WIDTH//2 - text_surface.get_width()//2, 200 + i * 40))
+        
+            mouse_pos = pygame.mouse.get_pos()
+            back_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 400, 300, 70)
+            self.draw_button("Powrót", back_btn, GREEN, DARK_GREEN, mouse_pos)
+        
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.change_state(GameState.END)
+                    return
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if back_btn.collidepoint(event.pos):
+                        self.change_state(GameState.HOMEPAGE)
+                        return
+        
+            pygame.display.flip()
+        
 
     def handle_gamepage(self) -> None:
         """Obsługuje stronę gry (rozgrywkę)."""
@@ -305,11 +403,11 @@ class Game:
 
         """ Komentarze do wyniku""" 
         if self.score == self.total_rounds:
-            comment = "Perfekcyjnie!"
+            comment = f"Perfekcyjnie, {self.player_name}!"
         elif self.score >= self.total_rounds // 2:
-            comment = "Dobry wynik!"
+            comment = f"Dobry wynik,{self.player_name}!"
         else:
-            comment = "Spróbuj jeszcze raz!"
+            comment = f"Spróbuj jeszcze raz, {self.player_name}!"
 
         comment_text = SMALL_FONT.render(comment, True, (100, 150, 100))
         self.screen.blit(comment_text, (SCREEN_WIDTH//2 - comment_text.get_width()//2, SCREEN_HEIGHT//2 + 20))

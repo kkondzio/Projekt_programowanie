@@ -6,7 +6,7 @@ class GameState(Enum):
 
     HOMEPAGE = auto()
     STARTPAGE = auto()
-    INCSTRUCTIONPAGE = auto()
+    INSTRUCTIONPAGE = auto()
     GAMEPAGE = auto()
     RESULTPAGE = auto()
     END = auto()
