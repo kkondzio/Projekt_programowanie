@@ -63,14 +63,14 @@ class Game:
         self.load_images()
 
         """Przygotowanie listy plików i miejsca na aktualne zdjęcie"""
-        self.image_folder: str = os.path.join(os.path.dirname(__file__), "zdjecia")
+        self.image_folder: str = os.path.join(os.path.dirname(__file__), "..", "assets", "photo_assets")
         self.image_keys: list[str] = list(self.images.keys())  
         self.current_image: str = None                      
         self.current_image_surface: pygame.Surface = None              
 
     def load_images(self):
-        """Ładuje zdjęcia z folderu "zdjecia" """
-        folder = os.path.join(os.path.dirname(__file__), "zdjecia")
+        """Ładuje zdjęcia z folderu "photo_assets" """
+        folder = os.path.join(os.path.dirname(__file__), "..",  "assets", "photo_assets")
         if not os.path.exists(folder):
             return 1
 
@@ -468,9 +468,9 @@ class Game:
         """Wczytuje widget mapy, zwraca obiekt lub None przy błędzie."""
         try:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            shapefile_path = os.path.join(project_root, 'map_assets', 'wojewodztwa.shp')
+            shapefile_path = os.path.join(project_root, '..', 'assets', 'map_assets', 'wojewodztwa.shp')
             if not os.path.exists(shapefile_path):
-                shapefile_path = os.path.join(os.path.dirname(__file__), 'map_assets', 'wojewodztwa.shp')
+                shapefile_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'map_assets', 'wojewodztwa.shp')
             if not os.path.exists(shapefile_path):
                 raise FileNotFoundError("Nie znaleziono pliku z mapą województw!")
 
