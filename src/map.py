@@ -120,6 +120,29 @@ class PolandMapWidget:
 
         screen.blit(self.surface, self.rect)
 
+        if self.hovered_voivodeship:
+            font = pygame.font.SysFont("Arial", 18, bold=False)
+            label = font.render(self.hovered_voivodeship['name'], True, (0, 0, 0))
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            padding = 4
+
+            background_x = mouse_x + 15 - padding
+            background_y = mouse_y + 10 - padding
+
+            if background_x < 0:
+                background_x = 0
+            if background_y < 0:
+                background_y = 0
+
+            background_rect = pygame.Rect(
+                background_x,
+                background_y,
+                label.get_width() + 2 * padding,
+                label.get_height() + 2 * padding
+            )
+            pygame.draw.rect(screen, (255, 255, 255), background_rect)
+            screen.blit(label, (mouse_x + 15, mouse_y + 10))
+
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
         """Obsługuje zdarzenia Pygame (kliknięcia)."""
         if not (self.active and self.visible):
