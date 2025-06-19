@@ -17,6 +17,10 @@ BLACK = (0, 0, 0)
 GREEN = (0, 200, 0)
 DARK_GREEN = (0, 160, 0)
 HEADER_HEIGHT = 60
+MAP_MARGIN = 50
+IMAGE_MARGIN = 50
+IMAGE_MAX_W = SCREEN_WIDTH // 2 - 2*IMAGE_MARGIN
+IMAGE_MAX_H = SCREEN_HEIGHT - HEADER_HEIGHT - 2*IMAGE_MARGIN
 
 """Czcionki"""
 FONT = pygame.font.SysFont('Arial', 32)
@@ -90,9 +94,8 @@ class Game:
                 continue
             try: 
                 surf = pygame.image.load(full_path).convert_alpha()    
-                max_w, max_h = 300, 300
                 w, h = surf.get_size()
-                scale = min(max_w / w, max_h / h)
+                scale = min(IMAGE_MAX_W / w, IMAGE_MAX_H / h)
                 new_size = (int(w * scale), int(h * scale))
                 self.current_image_surface = pygame.transform.smoothscale(surf, new_size)
                 return 
@@ -481,8 +484,11 @@ class Game:
                 shapefile_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'map_assets', 'wojewodztwa.shp')
             if not os.path.exists(shapefile_path):
                 raise FileNotFoundError("Nie znaleziono pliku z mapą województw!")
-
-            return PolandMapWidget(200, 200, 400, 400, shapefile_path)
+            map_x = MAP_MARGIN
+            map_y = HEADER_HEIGHT + MAP_MARGIN
+            map_w = SCREEN_WIDTH // 2 - 2*MAP_MARGIN
+            map_h = SCREEN_HEIGHT - HEADER_HEIGHT - 2*MAP_MARGIN
+            return PolandMapWidget(map_x, map_y, map_w, map_h, shapefile_path)
 
         except Exception as e:
             print(f"Błąd ładowania mapy: {e}")
@@ -493,6 +499,22 @@ class Game:
             pygame.time.wait(3000)
             self.change_state(GameState.HOMEPAGE)
             return None
+
+    def draw_scaled_image_right(self, image: pygame.Surface) -> None:
+        """Rysuje zdjęcie po prawej stronie, proporcjonalne skalowane i wyśrodkowane."""
+        available_width = SCREEN_WIDTH // 2 - 2 * MAP_MARGIN
+        available_height = SCREEN_HEIGHT - HEADER_HEIGHT - 2 * MAP_MARGIN
+        scale = min(available_width / image.get_width(), available_height / image.get_height(), 1)
+        new_width = int(image.get_width() * scale)
+        new_height = int(image.get_height() * scale)
+        image_scaled = pygame.transform.scale(image, (new_width, new_height))
+        right_x_start = SCREEN_WIDTH // 2
+        x = right_x_start + (available_width - new_width) // 2 + MAP_MARGIN
+        y = HEADER_HEIGHT + (available_height - new_height) // 2 + MAP_MARGIN
+
+        border_rect = pygame.Rect(x - 2, y - 2, new_width + 4, new_height + 4)
+        pygame.draw.rect(self.screen, (0, 0, 0), border_rect, 2) 
+        self.screen.blit(image_scaled, (x, y))
 
     def run_single_round(self, map_widget) -> None:
         """Prowadzi jedną rundę gry."""
@@ -512,9 +534,7 @@ class Game:
             self.draw_header()
 
             if self.current_image_surface:
-                x = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
-                y = HEADER_HEIGHT + 50
-                self.screen.blit(self.current_image_surface, (x, y))
+                self.draw_scaled_image_right(self.current_image_surface)
 
             map_widget.update()
             map_widget.draw(self.screen)
@@ -549,9 +569,7 @@ class Game:
             self.draw_header()
 
             if self.current_image_surface:
-                x = SCREEN_WIDTH - self.current_image_surface.get_width() - 50
-                y = HEADER_HEIGHT + 50
-                self.screen.blit(self.current_image_surface, (x, y))
+                self.draw_scaled_image_right(self.current_image_surface)
 
             map_widget.update()
             map_widget.draw(self.screen)
