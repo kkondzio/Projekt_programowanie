@@ -19,10 +19,24 @@ Gra polegająca na przyporządkowaniu miejsca ze zdjęcia do odpowiedniego wojew
 
 **Uruchomienie programu i jego obsługa** 
 
-Uruchomienie: 
- Aby uruchomić grę, należy wywołać plik: 
+Pobieranie:
 
-	python main.py 
+Pobierz repozytorium (https://github.com/kkondzio/Projekt_programowanie/archive/refs/heads/main.zip)
+Rozpakuj plik 
+Stwórz środowisko - otwórz CMD (wiersz poleceń)
+Przejdź do katalogu "\Projekt_programowanie-main"
+"pip install virtualenv"
+"python -m venv venv"
+
+Uruchom środowisko wirtualne:
+UNIX - "source venv/scripts/activate"
+WINDOWS - "venv\Scripts\activate.bat"
+Zainstaluj biblioteki (cofnij się do \Projekt_programowanie-main:
+"pip install -r requirements.txt")
+
+Uruchomienie:
+python src/main.py
+
 
 Interfejs użytkownika: 
 Po uruchomieniu pojawi się główne okno z trzema przyciskami: 
