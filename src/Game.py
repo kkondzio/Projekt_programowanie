@@ -12,6 +12,8 @@ pygame.init()
 
 """Stałe"""
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
+RED = (200,0,0) 
+ORANGE = (255,140,0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 200, 0)
@@ -180,6 +182,42 @@ class Game:
                 (SCREEN_WIDTH, y + wave),
                 2
             )
+
+    def pokaz_feedback(self, status: str, poprawne_woj: str) -> None:
+        """
+        Wyświetla komunikat po zakończeniu rundy:
+        'dobrze', 'zle', 'koniec czasu'
+        """
+        self.screen.fill((240, 240, 240))
+        self.draw_header()
+
+        if status == 'dobrze':
+            naglowek = "DOBRZE!"
+            kolor = GREEN
+            komunikat = "Otrzymujesz 1 punkt."
+        elif status == 'zle':
+            naglowek = "ŹLE"
+            kolor = RED
+            komunikat = f"Prawidłowe województwo to: {poprawne_woj.capitalize()}."
+        elif status == 'czas':
+            naglowek = "KONIEC CZASU!"
+            kolor = ORANGE
+            komunikat = f"Prawidłowe województwo to: {poprawne_woj.capitalize()}."
+        else:
+            return  
+
+        """Generowanie nagłówka"""
+        naglowek_surface = TITLE_FONT.render(naglowek, True, kolor)
+        naglowek_rect = naglowek_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 100))
+        self.screen.blit(naglowek_surface, naglowek_rect)
+
+        """Generowanie komunikatu"""
+        komunikat_surface = FONT.render(komunikat, True, kolor)
+        komunikat_rect = komunikat_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.screen.blit(komunikat_surface, komunikat_rect)
+
+        pygame.display.flip()
+        pygame.time.wait(2500)
 
     def handle_homepage(self)-> None:
         """Obsługuje ekran startowy z przyciskiem Start i Zakończ."""
@@ -527,7 +565,16 @@ class Game:
                     return
                 klikniete = map_widget.handle_event(event)
                 if klikniete:
-                    self.sprawdz_odpowiedz(self.current_image, klikniete)
+                    poprawne_woj = self.images[self.current_image]
+                    poprawna = self.sprawdz_odpowiedz(self.current_image, klikniete)
+
+                    self.current_image_surface = None  
+
+                    if poprawna:
+                        self.pokaz_feedback('dobrze', poprawne_woj)
+                    else:
+                        self.pokaz_feedback('zle', poprawne_woj)
+
                     round_running = False
 
             self.screen.fill((240, 240, 240))
@@ -557,13 +604,28 @@ class Game:
                     return
                 klikniete = map_widget.handle_event(event)
                 if klikniete:
-                    self.sprawdz_odpowiedz(self.current_image, klikniete)
+                    poprawne_woj = self.images[self.current_image]
+                    poprawna = self.sprawdz_odpowiedz(self.current_image, klikniete)
+
+                    self.current_image_surface = None  
+
+                    if poprawna:
+                        self.pokaz_feedback('dobrze', poprawne_woj)
+                    else:
+                        self.pokaz_feedback('zle', poprawne_woj)
+
                     round_running = False
 
             # Sprawdź czy czas się skończył
-            if elapsed_time > time_limit:
+            if elapsed_time > time_limit and round_running:
+                poprawne_woj = self.images[self.current_image]
+                self.sprawdz_odpowiedz(self.current_image, None)
+
+                self.current_image_surface = None
+                self.pokaz_feedback('czas', poprawne_woj)
+
                 round_running = False
-                self.sprawdz_odpowiedz(self.current_image, None) 
+
 
             self.screen.fill((240, 240, 240))
             self.draw_header()
