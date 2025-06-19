@@ -80,19 +80,27 @@ class Game:
 
     def pick_next_image(self) -> None:
         """Losuje nowe zdjęcie spośród dostępnych zdjęć"""        
-        if not self.image_keys:
-            self.current_image = None
-            self.current_image_surface = None
-            return    
-        self.current_image = random.choice(self.image_keys)
-        self.image_keys.remove(self.current_image)
-        full_path = os.path.join(self.image_folder, self.current_image)
-        surf = pygame.image.load(full_path).convert_alpha()    
-        max_w, max_h = 300, 300
-        w, h = surf.get_size()
-        scale = min(max_w / w, max_h / h)
-        new_size = (int(w * scale), int(h * scale))
-        self.current_image_surface = pygame.transform.smoothscale(surf, new_size)
+        while self.image_keys:   
+            self.current_image = random.choice(self.image_keys)
+            self.image_keys.remove(self.current_image)
+            full_path = os.path.join(self.image_folder, self.current_image)
+
+            if not os.path.exists(full_path):
+                print(f"Ostrzeżenie: Nie znaleziono pliku {full_path}. Przechodzę do kolejnego zdjęcia.")
+                continue
+            try: 
+                surf = pygame.image.load(full_path).convert_alpha()    
+                max_w, max_h = 300, 300
+                w, h = surf.get_size()
+                scale = min(max_w / w, max_h / h)
+                new_size = (int(w * scale), int(h * scale))
+                self.current_image_surface = pygame.transform.smoothscale(surf, new_size)
+                return 
+            except pygame.error as e:
+                print(f"Błąd ładowanie obrazu: {e}. Pomijam {self.current_image}.")
+                continue
+        self.current_image = None
+        self.current_image_surface = None
 
     def draw_header(self)-> None:
         """Rysuje nagłówek z informacjami o rundzie i wyniku."""
@@ -145,7 +153,7 @@ class Game:
         button_color = hover_color if rect.collidepoint(mouse_pos) else color
         if glow and rect.collidepoint(mouse_pos):
             glow_radius = int(10 + 5 * abs(pygame.time.get_ticks() % 1000 - 500) / 500)
-            glow_surf = pygame.Surface((rect.width + glow_radius*2, rect.height + glow_radius*2), pygame.SRCALPHA)
+            glow_surf: pygame.Surface = pygame.Surface((rect.width + glow_radius*2, rect.height + glow_radius*2), pygame.SRCALPHA)
             pygame.draw.rect(glow_surf, (*button_color[:3], 50),
                             (glow_radius, glow_radius, rect.width, rect.height),
                             border_radius=10)
@@ -153,7 +161,7 @@ class Game:
 
         pygame.draw.rect(self.screen, button_color, rect, border_radius=10)
         pygame.draw.rect(self.screen, BLACK, rect, 2, border_radius=10)
-        text_surface = FONT.render(text, True, BLACK)
+        text_surface: pygame.Surface = FONT.render(text, True, BLACK)
         text_rect = text_surface.get_rect(center=rect.center)
         self.screen.blit(text_surface, text_rect)
 
@@ -177,19 +185,19 @@ class Game:
         title_speed = 0.5
 
         while self.state == GameState.HOMEPAGE:
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
             if title_y < title_target_y:
                 title_y += title_speed
             self.screen.fill((240, 250, 240))
             self.draw_animated_background()
 
-            title = TITLE_FONT.render("Znajdź Województwo", True, (50, 100, 50))
-            title_shadow = TITLE_FONT.render("Znajdź Województwo", True, (100, 150, 100))
+            title: pygame.Surface = TITLE_FONT.render("Znajdź Województwo", True, (50, 100, 50))
+            title_shadow: pygame.Surface = TITLE_FONT.render("Znajdź Województwo", True, (100, 150, 100))
             self.screen.blit(title_shadow, (SCREEN_WIDTH//2 - title_shadow.get_width()//2 + 3, title_y + 3))
             self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, title_y))
-            start_btn = pygame.Rect(490, 250, 300, 70)
-            rules_btn = pygame.Rect(490, 350, 300, 70)
-            exit_btn = pygame.Rect(490, 450, 300, 70)
+            start_btn: pygame.Rect = pygame.Rect(490, 250, 300, 70)
+            rules_btn: pygame.Rect = pygame.Rect(490, 350, 300, 70)
+            exit_btn: pygame.Rect = pygame.Rect(490, 450, 300, 70)
             self.draw_button("Start Gry", start_btn, GREEN, DARK_GREEN, mouse_pos, glow=True)
             self.draw_button("Zasady Gry", rules_btn, GREEN, DARK_GREEN, mouse_pos)
             self.draw_button("Zakończ", exit_btn, GREEN, DARK_GREEN, mouse_pos)
@@ -216,13 +224,13 @@ class Game:
     def handle_difficulty_select(self) -> None:
         while self.state == GameState.DIFFICULTY_SELECT:
             self.screen.fill((240,250,240))
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
 
-            title = FONT.render("Wybierz poziom trudności", True, BLACK)
+            title: pygame.Surface = FONT.render("Wybierz poziom trudności", True, BLACK)
             self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 100))
 
-            easy_btn = pygame.Rect(490, 250, 300, 70)
-            hard_btn = pygame.Rect(490, 350, 300, 70)
+            easy_btn: pygame.Rect = pygame.Rect(490, 250, 300, 70)
+            hard_btn: pygame.Rect = pygame.Rect(490, 350, 300, 70)
             self.draw_button("Łatwy", easy_btn, GREEN, DARK_GREEN, mouse_pos)
             self.draw_button("Trudny", hard_btn, (200, 0, 0), (160, 0, 0), mouse_pos)
 
@@ -232,7 +240,7 @@ class Game:
                     return
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if easy_btn.collidepoint(event.pos):
-                        self.hard_mode = False
+                        self.hard_mode: bool = False
                         self.change_state(GameState.STARTPAGE)
                         return
                     elif hard_btn.collidepoint(event.pos):
@@ -246,26 +254,26 @@ class Game:
         """Obsługuje stronę rozpoczęcia rozgrywki z wprowadzeniem imienia i paskiem ładowania."""
         
         """inicjalizacja pola tekstowego"""
-        input_active = False
-        input_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 50)
-        color_active = pygame.Color('lightskyblue3')
-        color_inactive = pygame.Color('gray')
-        color = color_inactive
-        self.input_text = ''
+        input_active:bool = False
+        input_rect: pygame.Rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 50)
+        color_active: pygame.Color = pygame.Color('lightskyblue3')
+        color_inactive: pygame.Color = pygame.Color('gray')
+        color: pygame.Color = color_inactive
+        self.input_text: str = ''
 
         """Pętla wprowadzania imienia"""
-        name_entered = False
+        name_entered: bool = False
         while self.state == GameState.STARTPAGE and not name_entered:
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
             self.screen.fill((240, 250, 240))
             
-            title = FONT.render("Wprowadź swoje imię:", True, (50, 100, 50))
+            title: pygame.Surface = FONT.render("Wprowadź swoje imię:", True, (50, 100, 50))
             self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, SCREEN_HEIGHT//3 - 50))
             
             pygame.draw.rect(self.screen, color, input_rect, 2, border_radius=10)
-            text_surface = FONT.render(self.input_text, True, BLACK)
+            text_surface: pygame.Surface = FONT.render(self.input_text, True, BLACK)
             self.screen.blit(text_surface, (input_rect.x + 10, input_rect.y + 10))
-            
+
             continue_btn = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 20, 200, 60)
             self.draw_button("Dalej", continue_btn, GREEN, DARK_GREEN, mouse_pos, glow=bool(self.input_text))
             
@@ -283,7 +291,7 @@ class Game:
                         color = color_inactive
                         
                     if continue_btn.collidepoint(event.pos) and self.input_text:
-                        self.player_name = self.input_text
+                        self.player_name: str = self.input_text
                         name_entered = True
                         
                 if event.type == pygame.KEYDOWN and input_active:
@@ -304,7 +312,7 @@ class Game:
         if name_entered:
             self.screen.fill((240, 250, 240))
             
-            text = FONT.render(f"Witaj, {self.player_name}! Przygotuj się do gry!", True, BLACK)
+            text: pygame.Surface = FONT.render(f"Witaj, {self.player_name}! Przygotuj się do gry!", True, BLACK)
             self.screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
             pygame.draw.rect(self.screen, (200, 200, 200), (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 300, 20))
             pygame.display.flip()
@@ -321,27 +329,27 @@ class Game:
         """Obsługuje stronę rozpoczęcia rozgrywki z wprowadzeniem imienia i paskiem ładowania."""
         
         """inicjalizacja pola tekstowego"""
-        input_active = False
-        input_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 50)
-        color_active = pygame.Color('lightskyblue3')
-        color_inactive = pygame.Color('gray')
-        color = color_inactive
-        self.input_text = ''
+        input_active: bool = False
+        input_rect: pygame.Rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 50)
+        color_active: pygame.Color = pygame.Color('lightskyblue3')
+        color_inactive: pygame.Color = pygame.Color('gray')
+        color: pygame.Color = color_inactive
+        self.input_text: str = ''
 
         """Pętla wprowadzania imienia"""
-        name_entered = False
+        name_entered: bool = False
         while self.state == GameState.STARTPAGE_HARD_MODE and not name_entered:
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos: tuple[int, int] = pygame.mouse.get_pos()
             self.screen.fill((240, 250, 240))
             
-            title = FONT.render("Wprowadź swoje imię:", True, (50, 100, 50))
+            title: pygame.Surface = FONT.render("Wprowadź swoje imię:", True, (50, 100, 50))
             self.screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, SCREEN_HEIGHT//3 - 50))
             
             pygame.draw.rect(self.screen, color, input_rect, 2, border_radius=10)
-            text_surface = FONT.render(self.input_text, True, BLACK)
+            text_surface: pygame.Surface = FONT.render(self.input_text, True, BLACK)
             self.screen.blit(text_surface, (input_rect.x + 10, input_rect.y + 10))
             
-            continue_btn = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 20, 200, 60)
+            continue_btn: pygame.Rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 20, 200, 60)
             self.draw_button("Dalej", continue_btn, GREEN, DARK_GREEN, mouse_pos, glow=bool(self.input_text))
             
             for event in pygame.event.get():
@@ -358,7 +366,7 @@ class Game:
                         color = color_inactive
                         
                     if continue_btn.collidepoint(event.pos) and self.input_text:
-                        self.player_name = self.input_text
+                        self.player_name: str = self.input_text
                         name_entered = True
                         
                 if event.type == pygame.KEYDOWN and input_active:
@@ -379,7 +387,7 @@ class Game:
         if name_entered:
             self.screen.fill((240, 250, 240))
             
-            text = FONT.render(f"Witaj, {self.player_name}! Przygotuj się do gry!", True, BLACK)
+            text: pygame.Surface = FONT.render(f"Witaj, {self.player_name}! Przygotuj się do gry!", True, BLACK)
             self.screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
             pygame.draw.rect(self.screen, (200, 200, 200), (SCREEN_WIDTH//2 - 150, SCREEN_HEIGHT//2 + 50, 300, 20))
             pygame.display.flip()
@@ -561,6 +569,8 @@ class Game:
         Sprawdza, czy kliknięte województwo odpowiada zdjęciu.
         """
         poprawne_wojewodztwo = self.images[zdjecie]
+        if klikniete_wojewodztwo is None:
+            return False
         if klikniete_wojewodztwo.lower() == poprawne_wojewodztwo:
             self.score += 1
             return True

@@ -38,12 +38,12 @@ class PolandMapWidget:
         self.min_x, self.max_x = shapes[0].bbox[0], shapes[0].bbox[2]
         self.min_y, self.max_y = shapes[0].bbox[1], shapes[0].bbox[3]
         for shape in shapes:
-            self.min_x = min(self.min_x, shape.bbox[0])
-            self.max_x = max(self.max_x, shape.bbox[2])
-            self.min_y = min(self.min_y, shape.bbox[1])
-            self.max_y = max(self.max_y, shape.bbox[3])
+            self.min_x: float = min(self.min_x, shape.bbox[0])
+            self.max_x: float = max(self.max_x, shape.bbox[2])
+            self.min_y: float = min(self.min_y, shape.bbox[1])
+            self.max_y: float = max(self.max_y, shape.bbox[3])
 
-        self.colors = [
+        self.colors: List[tuple[int, int, int, int]] = [
             (255, 0, 0, 150), (0, 255, 0, 150), (0, 0, 255, 150),
             (255, 255, 0, 150), (255, 0, 255, 150), (0, 255, 255, 150),
             (128, 0, 0, 150), (0, 128, 0, 150), (0, 0, 128, 150),
