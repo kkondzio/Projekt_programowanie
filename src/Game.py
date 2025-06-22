@@ -243,7 +243,7 @@ class Game:
             self.draw_button("Zasady Gry", rules_btn, GREEN, DARK_GREEN, mouse_pos)
             self.draw_button("Zakończ", exit_btn, GREEN, DARK_GREEN, mouse_pos)
 
-            for event in pygame.event.get(): #TODO: zdarzeniaaa
+            for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.change_state(GameState.END)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -591,7 +591,7 @@ class Game:
         """Prowadzi jedną rundę gry z limitem 5 sekund na odpowiedź."""
         round_running = True
         start_time = pygame.time.get_ticks()  # czas startu w milisekundach
-        time_limit = 5000  # 5000 ms = 5 sekund
+        time_limit = 8000  # 8000 ms = 8 sekund
 
         while round_running:
             current_time = pygame.time.get_ticks()
