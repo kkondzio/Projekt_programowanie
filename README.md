@@ -57,4 +57,4 @@ python -m pytest
 
 
 
-![Diagram UML](Game.png)
+![Diagram UML](Game(uaktualniony).png)
