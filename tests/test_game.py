@@ -2,14 +2,14 @@ import pytest
 import os
 import sys
 import pygame
+import importlib
 
 SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src'))
 if SRC_PATH not in sys.path:
     sys.path.insert(0, SRC_PATH)
 
-from Game import Game
-from game_state import GameState
-
+Game = importlib.import_module('Game').Game
+GameState = importlib.import_module('game_state').GameState
 
 @pytest.fixture(autouse=True)
 def init_pygame():
@@ -18,7 +18,6 @@ def init_pygame():
     pygame.display.init()
     yield
     pygame.display.quit()
-
 
 @pytest.fixture
 def game(tmp_path, monkeypatch):
@@ -31,7 +30,6 @@ def game(tmp_path, monkeypatch):
     monkeypatch.setattr(g, 'image_folder', str(assets))
     return g
 
-
 def test_sprawdz_odpowiedz_correct(game):
     '''Sprawdza, że poprawna odpowiedź zwraca True i zwiększa wynik.'''  
     filename = 'pomorskie_01.png'
@@ -40,7 +38,6 @@ def test_sprawdz_odpowiedz_correct(game):
     result = game.sprawdz_odpowiedz(filename, 'pomorskie')
     assert result is True
     assert game.score == 1
-
 
 def test_sprawdz_odpowiedz_incorrect(game):
     '''Sprawdza, że niepoprawna odpowiedź zwraca False i nie zmienia wyniku.'''  
@@ -51,7 +48,6 @@ def test_sprawdz_odpowiedz_incorrect(game):
     assert result is False
     assert game.score == 5
 
-
 def test_sprawdz_odpowiedz_none_click(game):
     '''Sprawdza, że None zwraca False i nie zmienia wyniku.'''  
     filename = 'lubelskie_bar.jpg'
@@ -61,7 +57,6 @@ def test_sprawdz_odpowiedz_none_click(game):
     assert result is False
     assert game.score == 2
 
-
 def test_load_images_folder_missing(monkeypatch):
     '''Sprawdza, że load_images zwraca 1, jak folder nie istnieje.'''  
     game = Game()
@@ -69,13 +64,11 @@ def test_load_images_folder_missing(monkeypatch):
     ret = game.load_images()
     assert ret == 1
 
-
 def test_change_state(game):
     '''Sprawdza, że change_state poprawnie zmienia stan gry.'''  
     assert game.state == GameState.HOMEPAGE
     game.change_state(GameState.INSTRUCTIONPAGE)
     assert game.state == GameState.INSTRUCTIONPAGE
-
 
 def test_pick_next_image_no_images(game):
     '''Sprawdza, że pick_next_image ustawia current_image na None, gdy brak obrazów.'''  
@@ -83,7 +76,6 @@ def test_pick_next_image_no_images(game):
     game.pick_next_image()
     assert game.current_image is None
     assert game.current_image_surface is None
-
 
 def test_pick_next_image_success(game, monkeypatch):
     '''Sprawdza poprawne wczytanie i skalowanie obrazu przez pick_next_image.'''  
@@ -94,7 +86,6 @@ def test_pick_next_image_success(game, monkeypatch):
     assert game.current_image == 'testwoj_01.png'
     assert isinstance(game.current_image_surface, pygame.Surface)
 
-
 def test_draw_header_and_button_no_exceptions(game):
     '''Sprawdza, że draw_header i draw_button nie rzucają wyjątków.'''  
     game.screen = pygame.display.set_mode((800, 600))
@@ -104,7 +95,6 @@ def test_draw_header_and_button_no_exceptions(game):
     game.draw_header()
     rect = pygame.Rect(0, 0, 100, 50)
     game.draw_button('Test', rect, (0, 0, 0), (50, 50, 50), (10, 10))
-
 
 def test_load_map_widget_missing(monkeypatch, game):
     '''Sprawdza, że load_map_widget zwraca None i cofa do HOMEPAGE, gdy brak pliku mapy.'''  
